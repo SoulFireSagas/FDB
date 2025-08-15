@@ -16,7 +16,7 @@ class Server:
     PORT = int(env.get("PORT", 8080))
 
     USE_BLOGGER_REDIRECT = True  # Set False to disable
-    BLOGGER_URL = "https://your-blog.blogspot.com"
+    BLOGGER_URL = "https://redirectarc.blogspot.com/2025/08/redirecting-to-your-link-countdown-font.html"
     DOWNLOAD_DELAY_SECONDS = 7  # Countdown duration
 
 # LOGGING CONFIGURATION
@@ -54,6 +54,7 @@ LOGGER_CONFIG_JSON = {
         }
     }
 }
+
 
 
 
