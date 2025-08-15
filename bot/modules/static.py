@@ -32,10 +32,11 @@ FileLinksText = \
 `%(tg_link)s`
 """
 
-#MediaLinksText = \
-#"""
+MediaLinksText = \
+"""
 #**Download Link:**
 #`%(dl_link)s`
+"""
 #**Stream Link:**
 #`%(stream_link)s`
 #**Telegram File:**
@@ -66,4 +67,5 @@ MediaTypeNotSupportedText = \
 """
 Sorry, this media type is not supported.
 """
+
 
