@@ -14,6 +14,7 @@ class Server:
     BASE_URL = env.get("BASE_URL", "https://fond-marnia-soulfiresagas-e0ac340f.koyeb.app")
     WEBSITE_URL = env.get("WEBSITE_URL", "https://WWW.florespick.in")
     BIND_ADDRESS = env.get("BIND_ADDRESS", "0.0.0.0")
+    DOWNLOAD_DELAY_SECONDS = 5  # seconds
     PORT = int(env.get("PORT", 8080))
 
 # LOGGING CONFIGURATION
@@ -51,6 +52,7 @@ LOGGER_CONFIG_JSON = {
         }
     }
 }
+
 
 
 
