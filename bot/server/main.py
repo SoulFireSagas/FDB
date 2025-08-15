@@ -4,6 +4,8 @@ from bot import TelegramBot
 from bot.config import Telegram, Server
 from math import ceil, floor
 from bot.modules.telegram import get_message, get_file_properties
+from datetime import datetime, timedelta
+import urllib.parse
 
 bp = Blueprint('main', __name__)
 
@@ -12,7 +14,20 @@ async def home():
     return redirect(f'https://t.me/{Telegram.BOT_USERNAME}')
 
 @bp.route('/dl/<int:file_id>')
+async def handle_download(file_id):
+    """New endpoint that redirects to intermediate page"""
+    code = request.args.get('code') or abort(401)
+    return await render_template(
+        'download.html',
+        file_id=file_id,
+        code=code,
+        delay_seconds=Server.DOWNLOAD_DELAY_SECONDS,
+        bot_domain=Server.BASE_URL
+    )
+
+@bp.route('/start_download/<int:file_id>')
 async def transmit_file(file_id):
+    """Actual file download endpoint with CDN caching"""
     file = await get_message(message_id=int(file_id)) or abort(404)
     code = request.args.get('code') or abort(401)
     range_header = request.headers.get('Range', 0)
@@ -22,6 +37,26 @@ async def transmit_file(file_id):
 
     file_name, file_size, mime_type = get_file_properties(file)
     
+    # URL encode filename for safety
+    safe_filename = urllib.parse.quote(file_name)
+    
+    # Cloudflare CDN caching headers (24 hours)
+    cache_time = 86400
+    expiry = datetime.utcnow() + timedelta(seconds=cache_time)
+    
+    headers = {
+        "Content-Type": mime_type,
+        "Content-Range": f"bytes {from_bytes}-{until_bytes}/{file_size}" if range_header else "",
+        "Content-Length": str(req_length),
+        "Content-Disposition": f'attachment; filename="{safe_filename}"',
+        "Accept-Ranges": "bytes",
+        "Cache-Control": f"public, max-age={cache_time}",
+        "Expires": expiry.strftime("%a, %d %b %Y %H:%M:%S GMT"),
+        "CDN-Cache-Control": f"public, max-age={cache_time}",
+        "X-Content-Type-Options": "nosniff"
+    }
+
+    # Range request handling (keep your existing code)
     if range_header:
         from_bytes, until_bytes = range_header.replace("bytes=", "").split("-")
         from_bytes = int(from_bytes)
@@ -42,14 +77,6 @@ async def transmit_file(file_id):
 
     req_length = until_bytes - from_bytes + 1
     part_count = ceil(until_bytes / chunk_size) - floor(offset / chunk_size)
-    
-    headers = {
-            "Content-Type": f"{mime_type}",
-            "Content-Range": f"bytes {from_bytes}-{until_bytes}/{file_size}",
-            "Content-Length": str(req_length),
-            "Content-Disposition": f'attachment; filename="{file_name}"',
-            "Accept-Ranges": "bytes",
-        }
 
     async def file_generator():
         current_part = 1
@@ -66,21 +93,12 @@ async def transmit_file(file_id):
                 yield chunk
 
             current_part += 1
-
             if current_part > part_count:
                 break
 
     return Response(file_generator(), headers=headers, status=206 if range_header else 200)
 
-#@bp.route('/stream/<int:file_id>')
-#async def stream_file(file_id):
- #   code = request.args.get('code') or abort(401)
-
-  #  return await render_template('player.html', mediaLink=f'{Server.BASE_URL}/dl/{file_id}?code={code}')
-
 @bp.route('/file/<int:file_id>')
 async def file_deeplink(file_id):
     code = request.args.get('code') or abort(401)
-
     return redirect(f'https://t.me/{Telegram.BOT_USERNAME}?start=file_{file_id}_{code}')
-
