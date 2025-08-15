@@ -4,6 +4,7 @@ from bot import TelegramBot
 from bot.config import Telegram, Server
 from math import ceil, floor
 from bot.modules.telegram import get_message, get_file_properties
+from secrets import token_hex
 
 bp = Blueprint('main', __name__)
 
@@ -13,7 +14,12 @@ async def home():
 
 @bp.route('/dl/<int:file_id>')
 async def handle_download(file_id):
-    """Handles both direct and Blogger redirects"""
+    #"""Handles both direct and Blogger redirects"""
+    secret_code = token_hex(Telegram.SECRET_CODE_LENGTH)
+    event.message.text = f'`{secret_code}`'
+    message = await send_message(event.message)
+    message_id = message.id
+    
     if Server.USE_BLOGGER_REDIRECT:
         return redirect(f"{Server.BLOGGER_URL}?file_id={message_id}&code={secret_code}")
     else:
@@ -93,6 +99,7 @@ async def file_deeplink(file_id):
     code = request.args.get('code') or abort(401)
 
     return redirect(f'https://t.me/{Telegram.BOT_USERNAME}?start=file_{file_id}_{code}')
+
 
 
 
