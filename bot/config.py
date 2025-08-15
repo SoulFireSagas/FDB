@@ -15,6 +15,10 @@ class Server:
     BIND_ADDRESS = env.get("BIND_ADDRESS", "0.0.0.0")
     PORT = int(env.get("PORT", 8080))
 
+    USE_BLOGGER_REDIRECT = True  # Set False to disable
+    BLOGGER_URL = "https://your-blog.blogspot.com"
+    DOWNLOAD_DELAY_SECONDS = 7  # Countdown duration
+
 # LOGGING CONFIGURATION
 LOGGER_CONFIG_JSON = {
     'version': 1,
@@ -50,6 +54,7 @@ LOGGER_CONFIG_JSON = {
         }
     }
 }
+
 
 
 
