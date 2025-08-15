@@ -2,7 +2,7 @@ from telethon import Button
 from telethon.events import NewMessage
 from telethon.errors import MessageAuthorRequiredError, MessageNotModifiedError, MessageIdInvalidError
 from telethon.tl.custom import Message
-from secrets import token_hex
+#from secrets import token_hex
 from bot import TelegramBot
 from bot.config import Telegram, Server
 from bot.modules.decorators import verify_user
@@ -97,4 +97,5 @@ async def channel_file_handler(event: NewMessage.Event | Message):
             MessageNotModifiedError,
         ):
             pass
+
 
