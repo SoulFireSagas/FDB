@@ -2,8 +2,6 @@ from quart import Blueprint, Response, request, render_template, redirect
 from .error import abort
 from bot import TelegramBot
 from bot.config import Telegram, Server
-from Server import *
-from Telegram import *
 from math import ceil, floor
 from bot.modules.telegram import get_message, get_file_properties
 from datetime import datetime, timedelta
@@ -22,7 +20,7 @@ async def health_check():
 @bp.route('/dl/<int:file_id>')
 async def handle_download(file_id):
     code = request.args.get('code') or abort(401)
-    blogger_url = f"{WEBSITE_URL}/?SS_botz=file_{file_id}_{code}"
+    blogger_url = f"{Server.WEBSITE_URL}/?SS_botz=file_{file_id}_{code}"
     return redirect(blogger_url, code=302)
 
 @bp.route('/start_download/<int:file_id>')
@@ -102,6 +100,7 @@ async def transmit_file(file_id):
 async def file_deeplink(file_id):
     code = request.args.get('code') or abort(401)
     return redirect(f'https://t.me/{Telegram.BOT_USERNAME}?start=file_{file_id}_{code}')
+
 
 
 
