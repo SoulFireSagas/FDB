@@ -34,8 +34,9 @@ FileLinksText = \
 
 MediaLinksText = \
 """
-#**Download Link:**
-#`%(dl_link)s`
+**Download Link:**
+
+`%(dl_link)s`
 """
 #**Stream Link:**
 #`%(stream_link)s`
@@ -67,5 +68,6 @@ MediaTypeNotSupportedText = \
 """
 Sorry, this media type is not supported.
 """
+
 
 
