@@ -19,15 +19,9 @@ async def health_check():
 
 @bp.route('/dl/<int:file_id>')
 async def handle_download(file_id):
-    """New endpoint that redirects to intermediate page"""
     code = request.args.get('code') or abort(401)
-    return await render_template(
-        'download.html',
-        file_id=file_id,
-        code=code,
-        delay_seconds=Server.DOWNLOAD_DELAY_SECONDS,
-        bot_domain=Server.BASE_URL
-    )
+    blogger_url = f"{WEBSITE_URL}/?SS_Botz=file_{file_id}_{code}"
+    return redirect(blogger_url)
 
 @bp.route('/start_download/<int:file_id>')
 async def transmit_file(file_id):
@@ -106,4 +100,5 @@ async def transmit_file(file_id):
 async def file_deeplink(file_id):
     code = request.args.get('code') or abort(401)
     return redirect(f'https://t.me/{Telegram.BOT_USERNAME}?start=file_{file_id}_{code}')
+
 
