@@ -51,7 +51,7 @@ async def user_file_handler(event: NewMessage.Event | Message):
         )
     else:
         await event.reply(
-            message=FileLinksText % {'dl_link': dl_link, 'tg_link': tg_link},
+            message=FileLinksText % {'dl_link': dl_link}, #'tg_link': tg_link},
             buttons=[
                 [
                     Button.url('Download', dl_link)
@@ -109,6 +109,7 @@ async def channel_file_handler(event: NewMessage.Event | Message):
             MessageNotModifiedError,
         ):
             pass
+
 
 
 
