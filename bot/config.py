@@ -1,13 +1,13 @@
 from os import environ as env
 
 class Telegram:
-    API_ID = int(env.get("TELEGRAM_API_ID", 1234))
-    API_HASH = env.get("TELEGRAM_API_HASH", "xyz")
-    OWNER_ID = int(env.get("OWNER_ID", 1234567890))
-    ALLOWED_USER_IDS = env.get("ALLOWED_USER_IDS", "").split()
-    BOT_USERNAME = env.get("TELEGRAM_BOT_USERNAME", "BotFather")
-    BOT_TOKEN = env.get("TELEGRAM_BOT_TOKEN", "1234:abcd")
-    CHANNEL_ID = int(env.get("TELEGRAM_CHANNEL_ID", -1001234567890))
+    API_ID = int(env.get("TELEGRAM_API_ID", 22928570))
+    API_HASH = env.get("TELEGRAM_API_HASH", "60bb37bddecb48c27c3e86906a077603")
+    OWNER_ID = int(env.get("OWNER_ID", 2010016480))
+    ALLOWED_USER_IDS = env.get("ALLOWED_USER_IDS", "2010016480").split()
+    BOT_USERNAME = env.get("TELEGRAM_BOT_USERNAME", "ProfesssorParadoxRobot")
+    BOT_TOKEN = env.get("TELEGRAM_BOT_TOKEN", "7600571087:AAEY2OiwX8UxPo77e4Gfe-Kha-QsxuEXkZE")
+    CHANNEL_ID = int(env.get("TELEGRAM_CHANNEL_ID", -1002744991028))
     SECRET_CODE_LENGTH = int(env.get("SECRET_CODE_LENGTH", 12))
 
 class Server:
@@ -50,3 +50,4 @@ LOGGER_CONFIG_JSON = {
         }
     }
 }
+
