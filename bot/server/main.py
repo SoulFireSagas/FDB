@@ -21,7 +21,7 @@ async def health_check():
 async def handle_download(file_id):
     code = request.args.get('code') or abort(401)
     blogger_url = f"{WEBSITE_URL}/?SS_botz=file_{file_id}_{code}"
-    return redirect(blogger_url)
+    return redirect(blogger_url, code=302)
 
 @bp.route('/start_download/<int:file_id>')
 async def transmit_file(file_id):
@@ -100,6 +100,7 @@ async def transmit_file(file_id):
 async def file_deeplink(file_id):
     code = request.args.get('code') or abort(401)
     return redirect(f'https://t.me/{Telegram.BOT_USERNAME}?start=file_{file_id}_{code}')
+
 
 
 
