@@ -7,11 +7,15 @@ from bot.modules.telegram import get_message, get_file_properties
 from datetime import datetime, timedelta
 import urllib.parse
 
-bp = Blueprint('main', __name__)
+bp = Blueprint('main', __name__, template_folder='templates')
 
 @bp.route('/')
 async def home():
     return redirect(f'https://t.me/{Telegram.BOT_USERNAME}')
+
+@bp.route('/health')
+async def health_check():
+    return "OK", 200
 
 @bp.route('/dl/<int:file_id>')
 async def handle_download(file_id):
@@ -102,3 +106,4 @@ async def transmit_file(file_id):
 async def file_deeplink(file_id):
     code = request.args.get('code') or abort(401)
     return redirect(f'https://t.me/{Telegram.BOT_USERNAME}?start=file_{file_id}_{code}')
+
