@@ -8,6 +8,7 @@ from bot.config import Telegram, Server
 from bot.modules.decorators import verify_user
 from bot.modules.telegram import send_message, filter_files
 from bot.modules.static import *
+from urllib.parse import quote
 
 
 @TelegramBot.on(NewMessage(incoming=True, func=filter_files))
@@ -18,43 +19,46 @@ async def user_file_handler(event: NewMessage.Event | Message):
     message = await send_message(event.message)
     message_id = message.id
 
-    dl_link = f'{Server.BASE_URL}/dl/{message_id}?code={secret_code}'
+    
+
+# NEW: Add Blogger redirect link (only if enabled)
+    if Server.USE_BLOGGER_REDIRECT:
+        blogger_link = f"{Server.BLOGGER_URL}?file_id={message_id}&code={secret_code}"
+        dl_link = blogger_link  # Override direct download link
+
+    else:
+        dl_link = f'{Server.BASE_URL}/dl/{message_id}?code={secret_code}'
+        
     tg_link = f'{Server.BASE_URL}/file/{message_id}?code={secret_code}'
     deep_link = f'https://t.me/{Telegram.BOT_USERNAME}?start=file_{message_id}_{secret_code}'
 
+   
 
     if (event.document and 'video' in event.document.mime_type) or event.video:
         #stream_link = f'{Server.BASE_URL}/stream/{message_id}?code={secret_code}'
         await event.reply(
-            message=FileLinksText % {'dl_link': dl_link, 'tg_link': tg_link},
+            message= MediaLinksText % {'dl_link': dl_link},#'tg_link': tg_link, 'tg_link': tg_link, 'stream_link': stream_link},
             buttons=[
-                [Button.url('Download', dl_link)],
-                [Button.inline('Revoke', f'rm_{message_id}_{secret_code}')]
+                [
+                    Button.url('Download', dl_link)
+                   # Button.url('Stream', stream_link)
+                #],
+               # [
+                 #   Button.url('Get File', deep_link),
+                 #   Button.inline('Revoke', f'rm_{message_id}_{secret_code}')
+                ]
             ]
         )
-        #await event.reply(
-            #message= MediaLinksText % {'dl_link': dl_link, 'tg_link': tg_link, 'tg_link': tg_link, 'stream_link': stream_link},
-            #buttons=[
-             #   [
-              #      Button.url('Download', dl_link),
-               #     Button.url('Stream', stream_link)
-                #],
-                #[
-                 #   Button.url('Get File', deep_link),
-                  #  Button.inline('Revoke', f'rm_{message_id}_{secret_code}')
-                #]
-            #]
-        #)
     else:
         await event.reply(
-            message=FileLinksText % {'dl_link': dl_link, 'tg_link': tg_link},
+            message=FileLinksText % {'dl_link': dl_link, },#'tg_link': tg_link},
             buttons=[
                 [
-                    Button.url('Download', dl_link),
-                    Button.url('Get File', deep_link)
-                ],
-                [
-                    Button.inline('Revoke', f'rm_{message_id}_{secret_code}')
+                    Button.url('Download', dl_link)
+                #    Button.url('Get File', deep_link)
+               # ],
+              #  [
+                #    Button.inline('Revoke', f'rm_{message_id}_{secret_code}')
                 ]
             ]
         )
@@ -99,8 +103,4 @@ async def channel_file_handler(event: NewMessage.Event | Message):
             MessageNotModifiedError,
         ):
             pass
-
-
-
-
 
