@@ -10,22 +10,9 @@ bp = Blueprint('main', __name__)
 
 @bp.route('/')
 async def home():
-    return redirect(f'https://t.me/{Telegram.BOT_USERNAME}')
-
-@bp.route('/dl/<int:file_id>')
-async def handle_download(file_id):
-    #"""Handles both direct and Blogger redirects"""
-    secret_code = token_hex(Telegram.SECRET_CODE_LENGTH)
-    event.message.text = f'`{secret_code}`'
-    message = await send_message(event.message)
-    message_id = message.id
+    return 'api is working'
     
-    if Server.USE_BLOGGER_REDIRECT:
-        return redirect(f"{Server.BLOGGER_URL}?file_id={message_id}&code={secret_code}")
-    else:
-        # Your existing direct download logic
-        return await transmit_file(file_id)
-        
+@bp.route('/dl/<int:file_id>')       
 async def transmit_file(file_id):
     file = await get_message(message_id=int(file_id)) or abort(404)
     code = request.args.get('code') or abort(401)
@@ -99,6 +86,7 @@ async def file_deeplink(file_id):
     code = request.args.get('code') or abort(401)
 
     return redirect(f'https://t.me/{Telegram.BOT_USERNAME}?start=file_{file_id}_{code}')
+
 
 
 
