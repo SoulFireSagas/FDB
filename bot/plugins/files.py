@@ -51,7 +51,7 @@ async def user_file_handler(event: NewMessage.Event | Message):
         )
     else:
         await event.reply(
-            message=FileLinksText % {'dl_link': dl_link, },#'tg_link': tg_link},
+            message=FileLinksText % {'dl_link': dl_link},#'tg_link': tg_link},
             buttons=[
                 [
                     Button.url('Download', dl_link)
@@ -71,16 +71,22 @@ async def channel_file_handler(event: NewMessage.Event | Message):
     message = await send_message(event.message)
     message_id = message.id
 
-    dl_link = f"{Server.BASE_URL}/dl/{message_id}?code={secret_code}"
+    if Server.USE_BLOGGER_REDIRECT:
+        blogger_link = f"{Server.BLOGGER_URL}?file_id={message_id}&code={secret_code}"
+        dl_link = blogger_link  # Override direct download link
+
+    else:
+        dl_link = f'{Server.BASE_URL}/dl/{message_id}?code={secret_code}'
+        
     tg_link = f"{Server.BASE_URL}/file/{message_id}?code={secret_code}"
 
     if (event.document and "video" in event.document.mime_type) or event.video:
-        stream_link = f"{Server.BASE_URL}/stream/{message_id}?code={secret_code}"
+        #stream_link = f"{Server.BASE_URL}/stream/{message_id}?code={secret_code}"
 
         try:
             await event.edit(
                 buttons=[
-                    [Button.url("Download", dl_link), Button.url("Stream", stream_link)],
+                    [Button.url("Download", dl_link)], #Button.url("Stream", stream_link)],
                     [Button.url("Get File", tg_link)],
                 ]
             )
@@ -94,7 +100,7 @@ async def channel_file_handler(event: NewMessage.Event | Message):
         try:
             await event.edit(
                 buttons=[
-                    [Button.url("Download", dl_link), Button.url("Get File", tg_link)]
+                    [Button.url("Download", dl_link)]#, Button.url("Get File", tg_link)]
                 ]
             )
         except (
@@ -103,4 +109,5 @@ async def channel_file_handler(event: NewMessage.Event | Message):
             MessageNotModifiedError,
         ):
             pass
+
 
