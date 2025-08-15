@@ -15,7 +15,7 @@ async def home():
 async def handle_download(file_id):
     """Handles both direct and Blogger redirects"""
     if Server.USE_BLOGGER_REDIRECT:
-        return redirect(f"{Server.BLOGGER_URL}?file_id={file_id}&code={request.args.get('code')}")
+        return redirect(f"{Server.BLOGGER_URL}?file_id={message_id}&code={secret_code}")
     else:
         # Your existing direct download logic
         return await transmit_file(file_id)
@@ -91,4 +91,5 @@ async def file_deeplink(file_id):
     code = request.args.get('code') or abort(401)
 
     return redirect(f'https://t.me/{Telegram.BOT_USERNAME}?start=file_{file_id}_{code}')
+
 
