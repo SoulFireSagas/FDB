@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Download Starting</title>
+    <script>
+        setTimeout(() => {
+            window.location.href = `{{ bot_domain }}/start_download/{{ file_id }}?code={{ code }}`;
+        }, {{ delay_seconds }} * 1000);
+    </script>
+</head>
+<body>
+    <h1>Your download will start in {{ delay_seconds }} seconds...</h1>
+</body>
+</html>
