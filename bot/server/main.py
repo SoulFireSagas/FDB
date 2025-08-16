@@ -14,13 +14,22 @@ async def home():
 
 @bp.route('/RD-DL')
 async def handle_redirect():
-    #file_id = request.args.get('file_id')
-    #code = request.args.get('code')
+    file_id = request.args.get('file_id')
+    code = request.args.get('code')
     
-    # Make sure Server.RD_URL is a proper string
-    #redirect_url = f"{Server.RD_URL}?file_id={file_id}&code={code}"
-    #return redirect(redirect_url)
-    return redirect(Server.RD_URL)
+    # Randomly select one URL from the list
+    target_url = random.choice(RD_URLS) if RD_URLS else "https://www.florespick.in"
+    
+    # Construct the final URL (encode special characters)
+    from urllib.parse import quote
+    redirect_url = (
+        f"{BLOGGER_URL}?"
+        f"target={quote(target_url)}&"
+        f"file_id={quote(file_id)}&"
+        f"code={quote(code)}"
+    )
+    
+    return redirect(redirect_url)
 @bp.route('/dl/<int:file_id>')       
 async def transmit_file(file_id):
     file = await get_message(message_id=int(file_id)) or abort(404)
@@ -95,6 +104,7 @@ async def file_deeplink(file_id):
     code = request.args.get('code') or abort(401)
 
     return redirect(f'https://t.me/{Telegram.BOT_USERNAME}?start=file_{file_id}_{code}')
+
 
 
 
