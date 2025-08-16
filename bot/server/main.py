@@ -15,7 +15,7 @@ async def home():
     return 'api is working'
 
 # The new unified endpoint that handles both redirect and direct downloads
-@bp.route('/download/<int:file_id>')
+@bp.route('/RD/<int:file_id>')
 async def handle_download_request(file_id):
     code = request.args.get('code') or abort(401)
 
@@ -106,3 +106,4 @@ async def transmit_file(file_id, code=None):
 async def file_deeplink(file_id):
     code = request.args.get('code') or abort(401)
     return redirect(f'https://t.me/{Telegram.BOT_USERNAME}?start=file_{file_id}_{code}')
+
