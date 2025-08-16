@@ -22,10 +22,8 @@ async def user_file_handler(event: NewMessage.Event | Message):
     
 
 # NEW: Add Blogger redirect link (only if enabled)
-    if Server.USE_BLOGGER_REDIRECT:
-        blogger_link = f"{Server.BLOGGER_URL}?file_id={message_id}&code={secret_code}"
-        dl_link = blogger_link  # Override direct download link
-
+   if Server.USE_BLOGGER_REDIRECT:
+        dl_link = f"{Server.BASE_URL}/RD-DL?file_id={message_id}&code={secret_code}"
     else:
         dl_link = f'{Server.BASE_URL}/dl/{message_id}?code={secret_code}'
         
@@ -72,9 +70,7 @@ async def channel_file_handler(event: NewMessage.Event | Message):
     message_id = message.id
 
     if Server.USE_BLOGGER_REDIRECT:
-        blogger_link = f"{Server.BLOGGER_URL}?file_id={message_id}&code={secret_code}"
-        dl_link = blogger_link  # Override direct download link
-
+        dl_link = f"{Server.BASE_URL}/RD-DL?file_id={message_id}&code={secret_code}"
     else:
         dl_link = f'{Server.BASE_URL}/dl/{message_id}?code={secret_code}'
         
@@ -109,6 +105,7 @@ async def channel_file_handler(event: NewMessage.Event | Message):
             MessageNotModifiedError,
         ):
             pass
+
 
 
 
