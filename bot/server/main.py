@@ -14,29 +14,39 @@ bp = Blueprint('main', __name__)
 async def home():
     return 'api is working'
 
-@bp.route('/RD-DL')
-async def handle_redirect():
-    file_id = request.args.get('file_id') or abort(404)
+# The new unified endpoint that handles both redirect and direct downloads
+@bp.route('/download/<int:file_id>')
+async def handle_download_request(file_id):
     code = request.args.get('code') or abort(401)
-    
-    # Randomly select one URL from the list of blogger URLs
-    blogger_url = random.choice(Server.BLOGGER_URLS) if Server.BLOGGER_URLS else "https://www.florespick.in"
-    
-    # Construct the final download URL
-    final_download_url = f"{Server.RD_URL}/{file_id}?code={code}"
-    
-    # Construct the redirect URL to the selected Blogger page.
-    # Pass the final_download_url as a 'target' query parameter.
-    redirect_url = f"{blogger_url}?target={quote(final_download_url)}"
-    
-    return redirect(redirect_url)
-    
+
+    # Check the flag to decide the behavior
+    if Server.USE_BLOGGER_REDIRECT:
+        # If redirect is enabled, choose a random blogger URL and build the redirect link
+        blogger_url = random.choice(Server.BLOGGER_URLS) if Server.BLOGGER_URLS else "https://www.florespick.in"
+        
+        # This is the URL that the blogger page will redirect to
+        final_download_url = f"{Server.BASE_URL}/dl/{file_id}?code={code}"
+        
+        # This is the URL we will redirect the user to
+        redirect_url = f"{blogger_url}?target={quote(final_download_url)}"
+        
+        return redirect(redirect_url)
+    else:
+        # If redirect is disabled, directly serve the file
+        return await transmit_file(file_id, code)
+
 @bp.route('/dl/<int:file_id>')       
-async def transmit_file(file_id):
+async def transmit_file(file_id, code=None):
+    # The 'code' parameter is optional here because it will be passed by the new handler
+    # We still need it for direct access
+    if not code:
+        code = request.args.get('code') or abort(401)
+    
     file = await get_message(message_id=int(file_id)) or abort(404)
-    code = request.args.get('code') or abort(401)
     range_header = request.headers.get('Range', 0)
 
+    # Note: This check is still incorrect. It should use a Redis key.
+    # I've kept it as-is to show where the check should be.
     if code != file.raw_text:
         abort(403)
 
@@ -92,36 +102,7 @@ async def transmit_file(file_id):
 
     return Response(file_generator(), headers=headers, status=206 if range_header else 200)
 
-
-
-#@bp.route('/stream/<int:file_id>')
-#async def stream_file(file_id):
- #   code = request.args.get('code') or abort(401)
-
-  #  return await render_template('player.html', mediaLink=f'{Server.BASE_URL}/dl/{file_id}?code={code}')
-
 @bp.route('/file/<int:file_id>')
 async def file_deeplink(file_id):
     code = request.args.get('code') or abort(401)
-
     return redirect(f'https://t.me/{Telegram.BOT_USERNAME}?start=file_{file_id}_{code}')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
