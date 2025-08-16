@@ -16,22 +16,22 @@ async def home():
 
 @bp.route('/RD-DL')
 async def handle_redirect():
-    file_id = request.args.get('file_id')
-    code = request.args.get('code')
+    file_id = request.args.get('file_id') or abort(404)
+    code = request.args.get('code') or abort(401)
     
-    # Randomly select one URL from the list
-    target_url = random.choice(Server.RD_URL) if Server.RD_URL else "https://www.florespick.in"
+    # Randomly select one URL from the list of blogger URLs
+    blogger_url = random.choice(Server.BLOGGER_URLS) if Server.BLOGGER_URLS else "https://www.florespick.in"
     
-    # Construct the final URL (encode special characters)
-    from urllib.parse import quote
-    redirect_url = (
-        f"{Server.BLOGGER_URL}?"
-        f"target={quote(target_url)}&"
-        f"file_id={quote(file_id)}&"
-        f"code={quote(code)}"
-    )
+    # Construct the final URL (the one that the Blogger page will redirect to)
+    # This URL must point back to your server's /dl endpoint
+    final_download_url = f"{Server.RD_URL}/{file_id}?code={code}"
+    
+    # Construct the redirect URL to the selected Blogger page
+    # We pass the final_download_url as a 'target' query parameter
+    redirect_url = f"{blogger_url}?target={quote(final_download_url)}"
     
     return redirect(redirect_url)
+    
 @bp.route('/dl/<int:file_id>')       
 async def transmit_file(file_id):
     file = await get_message(message_id=int(file_id)) or abort(404)
@@ -106,6 +106,7 @@ async def file_deeplink(file_id):
     code = request.args.get('code') or abort(401)
 
     return redirect(f'https://t.me/{Telegram.BOT_USERNAME}?start=file_{file_id}_{code}')
+
 
 
 
