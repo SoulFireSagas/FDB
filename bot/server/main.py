@@ -25,7 +25,7 @@ async def handle_redirect():
     # Construct the final URL (encode special characters)
     from urllib.parse import quote
     redirect_url = (
-        f"{BLOGGER_URL}?"
+        f"{Server.BLOGGER_URL}?"
         f"target={quote(target_url)}&"
         f"file_id={quote(file_id)}&"
         f"code={quote(code)}"
@@ -106,6 +106,7 @@ async def file_deeplink(file_id):
     code = request.args.get('code') or abort(401)
 
     return redirect(f'https://t.me/{Telegram.BOT_USERNAME}?start=file_{file_id}_{code}')
+
 
 
 
