@@ -5,6 +5,8 @@ from bot.config import Telegram, Server
 from math import ceil, floor
 from bot.modules.telegram import get_message, get_file_properties
 from secrets import token_hex
+import random 
+from urllib.parse import quote
 
 bp = Blueprint('main', __name__)
 
@@ -104,6 +106,7 @@ async def file_deeplink(file_id):
     code = request.args.get('code') or abort(401)
 
     return redirect(f'https://t.me/{Telegram.BOT_USERNAME}?start=file_{file_id}_{code}')
+
 
 
 
