@@ -20,7 +20,7 @@ async def handle_redirect():
     code = request.args.get('code') or abort(401)
     
     # Randomly select one URL from the list of blogger URLs
-    blogger_url = random.choice(Server.BLOGGER_URLS) if Server.BLOGGER_URLS else "https://www.florespick.in"
+    blogger_url = random.choice(Server.BLOGGER_URL) if Server.BLOGGER_URL else "https://www.florespick.in"
     
     # Construct the final URL (the one that the Blogger page will redirect to)
     # This URL must point back to your server's /dl endpoint
@@ -106,6 +106,7 @@ async def file_deeplink(file_id):
     code = request.args.get('code') or abort(401)
 
     return redirect(f'https://t.me/{Telegram.BOT_USERNAME}?start=file_{file_id}_{code}')
+
 
 
 
