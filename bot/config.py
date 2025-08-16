@@ -34,7 +34,7 @@ class Server:
 
     USE_BLOGGER_REDIRECT = True  # Set False to disable
 
-    BLOGGER_URL = "https://fond-marnia-soulfiresagas-e0ac340f.koyeb.app/RD"
+    BLOGGER_URL = "https://fond-marnia-soulfiresagas-e0ac340f.koyeb.app/RD-DL"
 
     RD_URL = env.get("RD_URL", "https://redirectarc.blogspot.com/2025/08/redirect.html").split()
 
@@ -111,6 +111,7 @@ LOGGER_CONFIG_JSON = {
     }
 
 }
+
 
 
 
