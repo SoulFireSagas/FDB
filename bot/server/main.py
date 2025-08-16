@@ -14,7 +14,7 @@ async def home():
 
 @bp.route('/RD')
 async def redirect():
-    return redirect({Server.RD_URL})
+    return redirect(Server.RD_URL)
     
 @bp.route('/dl/<int:file_id>')       
 async def transmit_file(file_id):
@@ -90,6 +90,7 @@ async def file_deeplink(file_id):
     code = request.args.get('code') or abort(401)
 
     return redirect(f'https://t.me/{Telegram.BOT_USERNAME}?start=file_{file_id}_{code}')
+
 
 
 
