@@ -34,7 +34,9 @@ class Server:
 
     USE_BLOGGER_REDIRECT = True  # Set False to disable
 
-    BLOGGER_URL = "https://redirectarc.blogspot.com/2025/08/redirect.html"
+    BLOGGER_URL = "https://fond-marnia-soulfiresagas-e0ac340f.koyeb.app/RD"
+
+    RD_URL = env.get("ALLOWED_USER_IDS", "https://redirectarc.blogspot.com/2025/08/redirect.html").split()
 
     DOWNLOAD_DELAY_SECONDS = 7  # Countdown duration
 
@@ -109,6 +111,7 @@ LOGGER_CONFIG_JSON = {
     }
 
 }
+
 
 
 
