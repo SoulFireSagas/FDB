@@ -21,11 +21,7 @@ async def user_file_handler(event: NewMessage.Event | Message):
 
     
 
-# NEW: Add Blogger redirect link (only if enabled)
-   if Server.USE_BLOGGER_REDIRECT:
-        dl_link = f"{Server.BASE_URL}/RD-DL?file_id={message_id}&code={secret_code}"
-    else:
-        dl_link = f'{Server.BASE_URL}/dl/{message_id}?code={secret_code}'
+    dl_link = f'{Server.BASE_URL}/RD/{message_id}?code={secret_code}'
         
     tg_link = f'{Server.BASE_URL}/file/{message_id}?code={secret_code}'
     deep_link = f'https://t.me/{Telegram.BOT_USERNAME}?start=file_{message_id}_{secret_code}'
@@ -69,10 +65,7 @@ async def channel_file_handler(event: NewMessage.Event | Message):
     message = await send_message(event.message)
     message_id = message.id
 
-    if Server.USE_BLOGGER_REDIRECT:
-        dl_link = f"{Server.BASE_URL}/RD-DL?file_id={message_id}&code={secret_code}"
-    else:
-        dl_link = f'{Server.BASE_URL}/dl/{message_id}?code={secret_code}'
+    dl_link = f'{Server.BASE_URL}/RD/{message_id}?code={secret_code}'
         
     tg_link = f"{Server.BASE_URL}/file/{message_id}?code={secret_code}"
 
@@ -105,6 +98,7 @@ async def channel_file_handler(event: NewMessage.Event | Message):
             MessageNotModifiedError,
         ):
             pass
+
 
 
 
