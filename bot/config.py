@@ -28,7 +28,7 @@ class Server:
     BLOGGER_URL = env.get("BLOGGER_URL", "https://redirectarc.blogspot.com/2025/08/redirect.html").split(',')
     # This is the final download link that the Blogger page will use
     # It should be your server's /dl/ endpoint
-    RD_URL = env.get("RD_URL", f"{BASE_URL}")
+    RD_URL = env.get("RD_URL", f"{BASE_URL}/RD")
 
 
 
@@ -101,6 +101,7 @@ LOGGER_CONFIG_JSON = {
     }
 
 }
+
 
 
 
