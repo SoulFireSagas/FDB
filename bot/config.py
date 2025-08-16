@@ -25,7 +25,7 @@ class Server:
 
     USE_BLOGGER_REDIRECT = True  # Set False to disable
     # Corrected: This should be a list of the actual Blogger redirect URLs.
-    BLOGGER_URL = env.get("BLOGGER_URL", "https://redirectarc.blogspot.com/2025/08/redirect.html").split(',')
+    BLOGGER_URLS = env.get("BLOGGER_URLS", "https://redirectarc.blogspot.com/2025/08/redirect.html").split(',')
     # This is the final download link that the Blogger page will use
     # It should be your server's /dl/ endpoint
     RD_URL = env.get("RD_URL", f"{BASE_URL}/RD")
@@ -101,6 +101,7 @@ LOGGER_CONFIG_JSON = {
     }
 
 }
+
 
 
 
