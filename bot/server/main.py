@@ -18,7 +18,7 @@ async def handle_redirect():
     code = request.args.get('code')
     
     # Randomly select one URL from the list
-    target_url = random.choice(RD_URLS) if RD_URLS else "https://www.florespick.in"
+    target_url = random.choice(RD_URL) if RD_URL else "https://www.florespick.in"
     
     # Construct the final URL (encode special characters)
     from urllib.parse import quote
@@ -104,6 +104,7 @@ async def file_deeplink(file_id):
     code = request.args.get('code') or abort(401)
 
     return redirect(f'https://t.me/{Telegram.BOT_USERNAME}?start=file_{file_id}_{code}')
+
 
 
 
