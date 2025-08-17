@@ -13,6 +13,7 @@ from bot.modules.static import *
 from urllib.parse import quote
 import json
 import re
+from bot.modules.database import db # New Import
 
 # In-memory storage for bulk uploads.
 bulk_uploads = {}
@@ -79,6 +80,9 @@ async def user_file_handler(event: NewMessage.Event | Message):
         message = await send_message(event.message)
         message_id = message.id
         
+        # Save the file metadata to MongoDB
+        db.save_file(message_id, secret_code)
+
         dl_link = f'{Server.BASE_URL}/RD/{message_id}?code={secret_code}'
         tg_link = f'{Server.BASE_URL}/file/{message_id}?code={secret_code}'
 
@@ -116,12 +120,10 @@ async def end_bulk_upload(event: NewMessage.Event | Message):
     bulk_data = bulk_uploads[user_id]
     del bulk_uploads[user_id]
     
-    # Send the JSON data to the channel and get the message ID
-    json_data = json.dumps(bulk_data)
-    bulk_message = await TelegramBot.send_message(entity=Telegram.CHANNEL_ID, message=f'#bulk_files_{json_data}')
-    bulk_id = bulk_message.id
+    # Save bulk data to MongoDB instead of the channel
+    bulk_id = db.save_bulk(bulk_data)
     
-    bulk_link = f"{Server.BASE_URL}/Episodes/{bulk_id}"
+    bulk_link = f"{Server.BASE_URL}/bulk/{bulk_id}"
     
     await event.reply(
         "Bulk upload complete! Here is your dedicated page:\n\n"
@@ -135,19 +137,12 @@ async def channel_file_handler(event: NewMessage.Event | Message):
     """
     Handles new files in the channel, adding download links.
     """
-    secret_code = token_hex(Telegram.SECRET_CODE_LENGTH)
-    
     # Check if the message was sent by the bot itself by checking the sender ID
     me = await TelegramBot.get_me()
     if event.sender_id == me.id:
         try:
-            # Edit the message with the download button and secret code
-            await event.edit(
-                text=f"`{secret_code}`",
-                buttons=[
-                    [Button.url("Download", f'{Server.BASE_URL}/RD/{event.message.id}?code={secret_code}')]
-                ]
-            )
+            # We no longer need to edit the message here, as it's a file sent by a human user
+            pass
         except (
             MessageAuthorRequiredError,
             MessageIdInvalidError,
@@ -157,9 +152,13 @@ async def channel_file_handler(event: NewMessage.Event | Message):
         return
     
     # If the message was sent by a user, add the download button
+    secret_code = token_hex(Telegram.SECRET_CODE_LENGTH)
+    
+    # We save the metadata to MongoDB instead of adding it to the message text
+    db.save_file(event.message.id, secret_code)
+
     try:
         await event.edit(
-            text=f"`{secret_code}`",
             buttons=[
                 [Button.url("Download", f'{Server.BASE_URL}/RD/{event.message.id}?code={secret_code}')]
             ]
