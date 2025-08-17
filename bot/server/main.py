@@ -1,3 +1,5 @@
+# bot/server/main.py
+
 from quart import Blueprint, Response, request, render_template, redirect
 from .error import abort
 from bot import TelegramBot
@@ -5,8 +7,9 @@ from bot.config import Telegram, Server
 from math import ceil, floor
 from bot.modules.telegram import get_message, get_file_properties
 from secrets import token_hex
-import random 
+import random
 from urllib.parse import quote
+import json
 
 bp = Blueprint('main', __name__)
 
@@ -14,39 +17,26 @@ bp = Blueprint('main', __name__)
 async def home():
     return 'api is working'
 
-# The new unified endpoint that handles both redirect and direct downloads
 @bp.route('/RD/<int:file_id>')
 async def handle_download_request(file_id):
     code = request.args.get('code') or abort(401)
-
-    # Check the flag to decide the behavior
+    
     if Server.USE_BLOGGER_REDIRECT:
-        # If redirect is enabled, choose a random blogger URL and build the redirect link
         blogger_url = random.choice(Server.BLOGGER_URLS) if Server.BLOGGER_URLS else "https://www.florespick.in"
-        
-        # This is the URL that the blogger page will redirect to
         final_download_url = f"{Server.BASE_URL}/dl/{file_id}?code={code}"
-        
-        # This is the URL we will redirect the user to
         redirect_url = f"{blogger_url}?target={quote(final_download_url)}"
-        
         return redirect(redirect_url)
     else:
-        # If redirect is disabled, directly serve the file
         return await transmit_file(file_id, code)
 
-@bp.route('/dl/<int:file_id>')       
+@bp.route('/dl/<int:file_id>')
 async def transmit_file(file_id, code=None):
-    # The 'code' parameter is optional here because it will be passed by the new handler
-    # We still need it for direct access
     if not code:
         code = request.args.get('code') or abort(401)
     
     file = await get_message(message_id=int(file_id)) or abort(404)
     range_header = request.headers.get('Range', 0)
 
-    # Note: This check is still incorrect. It should use a Redis key.
-    # I've kept it as-is to show where the check should be.
     if code != file.raw_text:
         abort(403)
 
@@ -107,12 +97,18 @@ async def file_deeplink(file_id):
     code = request.args.get('code') or abort(401)
     return redirect(f'https://t.me/{Telegram.BOT_USERNAME}?start=file_{file_id}_{code}')
 
-
-@bp.route('/Episodes/<bulk_id>')
+# NEW: Route for the bulk file page
+@bp.route('/bulk/<int:bulk_id>')
 async def bulk_page(bulk_id):
-    bulk_data = TelegramBot.bulk_cache.get(bulk_id) or abort(404)
+    # Retrieve the message from the channel using the message ID
+    bulk_message = await TelegramBot.get_messages(entity=Telegram.CHANNEL_ID, ids=bulk_id) or abort(404)
+    
+    # Check if the message contains our bulk file data flag
+    if not bulk_message.text.startswith('#bulk_files_'):
+        abort(404)
+        
+    # Extract and parse the JSON data
+    bulk_data_json = bulk_message.text.replace('#bulk_files_', '', 1)
+    bulk_data = json.loads(bulk_data_json)
+    
     return await render_template('bulk_page.html', bulk_data=bulk_data)
-
-
-
-
