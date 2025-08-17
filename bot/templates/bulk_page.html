@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ bulk_data.name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .file-button {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            border: 1px solid #4b5563;
+        }
+        .file-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-2xl mx-4">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">{{ bulk_data.name }}</h1>
+        <div class="space-y-4">
+            {% for file_info in bulk_data.files %}
+            {% set serial_number = loop.index %}
+            {% set file_id = file_info.id %}
+            {% set file_size = file_info.size | filesizeformat %}
+            {% set secret_code = 'your_secret_code_from_database' %}
+            <!-- This is where we need to generate a real secret code. For this example, we'll use a placeholder.
+                 A proper implementation would get the secret from the database. -->
+            <a href="/download/{{ file_id }}?code={{ secret_code }}" class="file-button w-full flex items-center justify-between p-4 rounded-lg shadow-md text-white">
+                <div class="flex items-center">
+                    <span class="mr-3 text-lg">▶️</span>
+                    <span class="font-medium">{{ bulk_data.text }} {{ serial_number }}</span>
+                </div>
+                <span class="text-xs font-semibold text-gray-400">- {{ file_size }}</span>
+            </a>
+            {% endfor %}
+        </div>
+        <p class="text-center text-xs text-gray-500 mt-6">
+            <span class="font-bold">Important:</span> Links are generated for a limited time. Please download your files promptly.
+        </p>
+    </div>
+</body>
+</html>
+
