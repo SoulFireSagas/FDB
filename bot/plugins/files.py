@@ -123,7 +123,7 @@ async def end_bulk_upload(event: NewMessage.Event | Message):
     # Save bulk data to MongoDB instead of the channel
     bulk_id = db.save_bulk(bulk_data)
     
-    bulk_link = f"{Server.BASE_URL}/bulk/{bulk_id}"
+    bulk_link = f"{Server.BASE_URL}/Episodes/{bulk_id}"
     
     await event.reply(
         "Bulk upload complete! Here is your dedicated page:\n\n"
@@ -169,3 +169,4 @@ async def channel_file_handler(event: NewMessage.Event | Message):
         MessageNotModifiedError,
     ):
         pass
+
