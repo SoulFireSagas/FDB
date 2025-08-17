@@ -10,6 +10,8 @@ from secrets import token_hex
 import random
 from urllib.parse import quote
 import json
+from bot.modules.database import db # New Import
+from bson.objectid import ObjectId # New Import
 
 bp = Blueprint('main', __name__)
 
@@ -21,6 +23,13 @@ async def home():
 async def handle_download_request(file_id):
     code = request.args.get('code') or abort(401)
     
+    # Retrieve file data from MongoDB
+    file_data = db.get_file(file_id)
+
+    # Check if the file data exists and the secret code matches
+    if not file_data or file_data['secret_code'] != code:
+        abort(403)
+        
     if Server.USE_BLOGGER_REDIRECT:
         blogger_url = random.choice(Server.BLOGGER_URLS) if Server.BLOGGER_URLS else "https://www.florespick.in"
         final_download_url = f"{Server.BASE_URL}/dl/{file_id}?code={code}"
@@ -33,12 +42,16 @@ async def handle_download_request(file_id):
 async def transmit_file(file_id, code=None):
     if not code:
         code = request.args.get('code') or abort(401)
+
+    # Retrieve file data from MongoDB
+    file_data = db.get_file(file_id)
     
+    # Check if the file data exists and the secret code matches
+    if not file_data or file_data['secret_code'] != code:
+        abort(403)
+        
     file = await get_message(message_id=int(file_id)) or abort(404)
     range_header = request.headers.get('Range', 0)
-
-    if code != file.raw_text:
-        abort(403)
 
     file_name, file_size, mime_type = get_file_properties(file)
     
@@ -64,12 +77,12 @@ async def transmit_file(file_id, code=None):
     part_count = ceil(until_bytes / chunk_size) - floor(offset / chunk_size)
     
     headers = {
-            "Content-Type": f"{mime_type}",
-            "Content-Range": f"bytes {from_bytes}-{until_bytes}/{file_size}",
-            "Content-Length": str(req_length),
-            "Content-Disposition": f'attachment; filename="{file_name}"',
-            "Accept-Ranges": "bytes",
-        }
+                "Content-Type": f"{mime_type}",
+                "Content-Range": f"bytes {from_bytes}-{until_bytes}/{file_size}",
+                "Content-Length": str(req_length),
+                "Content-Disposition": f'attachment; filename="{file_name}"',
+                "Accept-Ranges": "bytes",
+            }
 
     async def file_generator():
         current_part = 1
@@ -98,18 +111,17 @@ async def file_deeplink(file_id):
     return redirect(f'https://t.me/{Telegram.BOT_USERNAME}?start=file_{file_id}_{code}')
 
 # NEW: Route for the bulk file page
-@bp.route('/Episodes/<int:bulk_id>')
+@bp.route('/Episodes/<string:bulk_id>') # Changed to string
 async def bulk_page(bulk_id):
-    # Retrieve the message from the channel using the message ID
-    bulk_message = await TelegramBot.get_messages(entity=Telegram.CHANNEL_ID, ids=bulk_id) or abort(404)
-    
-    # Check if the message contains our bulk file data flag
-    if not bulk_message.text.startswith('#bulk_files_'):
-        abort(404)
+    try:
+        # Retrieve bulk data from MongoDB using the object ID
+        bulk_data = db.get_bulk(bulk_id)
         
-    # Extract and parse the JSON data
-    bulk_data_json = bulk_message.text.replace('#bulk_files_', '', 1)
-    bulk_data = json.loads(bulk_data_json)
-    
-    return await render_template('bulk_page.html', bulk_data=bulk_data)
+        if not bulk_data:
+            return "Bulk download not found.", 404
 
+        # Render the template with the data from the database
+        return await render_template('bulk_page.html', bulk_data=bulk_data)
+    except Exception as e:
+        # Handle cases where the bulk_id is not a valid ObjectId
+        return "An error occurred.", 500
