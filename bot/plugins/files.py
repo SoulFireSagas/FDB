@@ -1,3 +1,5 @@
+# bot/plugins/files.py
+
 from telethon import Button
 from telethon.events import NewMessage
 from telethon.errors import MessageAuthorRequiredError, MessageNotModifiedError, MessageIdInvalidError
@@ -9,6 +11,7 @@ from bot.modules.decorators import verify_user
 from bot.modules.telegram import send_message, filter_files, get_file_properties
 from bot.modules.static import *
 from urllib.parse import quote
+import json
 
 # Temporary in-memory storage for bulk uploads.
 # Format: {user_id: {'name': '...','text': '...', 'files': [{'id': ..., 'size': ...}, ...]}}
@@ -97,18 +100,21 @@ async def end_bulk_upload(event: NewMessage.Event | Message):
         await event.reply("No files were uploaded. Please use /bulk to start.")
         return
 
-    bulk_id = token_hex(16)
     bulk_data = bulk_uploads[user_id]
     del bulk_uploads[user_id]
     
-    TelegramBot.bulk_cache[bulk_id] = bulk_data
+    # Send the JSON data to the channel and get the message ID
+    json_data = json.dumps(bulk_data)
+    # The message sent to the channel is a special one, so we add a unique prefix to it
+    bulk_message = await TelegramBot.send_message(entity=Telegram.CHANNEL_ID, message=f'#bulk_files_{json_data}')
+    bulk_id = bulk_message.id
     
     bulk_link = f"{Server.BASE_URL}/bulk/{bulk_id}"
     
     await event.reply(
         "Bulk upload complete! Here is your dedicated page:\n\n"
         f"🔗 **Link:** {bulk_link}\n\n"
-        "This link will expire after a while."
+        "This link is now permanent and will not expire."
     )
 
 @TelegramBot.on(NewMessage(incoming=True, func=filter_files, forwards=False))
