@@ -12,115 +12,39 @@ from bot.modules.telegram import send_message, filter_files, get_file_properties
 from bot.modules.static import *
 from urllib.parse import quote
 import json
+import re
 
-# Temporary in-memory storage for bulk uploads.
-# Format: {user_id: {'message_id': ..., 'data': {'name': '', 'text': '', 'files': []}}}
+# In-memory storage for bulk uploads.
 bulk_uploads = {}
-
-async def get_bulk_data(user_id):
-    """
-    Retrieves a user's bulk data from the temporary channel message.
-    """
-    if user_id in bulk_uploads:
-        temp_message_id = bulk_uploads[user_id]['message_id']
-        try:
-            bulk_message = await TelegramBot.get_messages(entity=Telegram.CHANNEL_ID, ids=temp_message_id)
-            if bulk_message and bulk_message.text.startswith('#temp_bulk_files_'):
-                bulk_data_json = bulk_message.text.replace('#temp_bulk_files_', '', 1)
-                return json.loads(bulk_data_json)
-        except Exception:
-            # Handle cases where the message is deleted or not found
-            pass
-    return None
-
-async def save_bulk_data(user_id, bulk_data):
-    """
-    Saves a user's bulk data to a temporary channel message.
-    """
-    json_data = json.dumps(bulk_data)
-    
-    if user_id in bulk_uploads:
-        temp_message_id = bulk_uploads[user_id]['message_id']
-        try:
-            await TelegramBot.edit_message(
-                entity=Telegram.CHANNEL_ID,
-                id=temp_message_id,
-                text=f'#temp_bulk_files_{json_data}'
-            )
-            return temp_message_id
-        except Exception:
-            # If message is not found, we create a new one
-            del bulk_uploads[user_id]
-            pass
-
-    bulk_message = await TelegramBot.send_message(entity=Telegram.CHANNEL_ID, message=f'#temp_bulk_files_{json_data}')
-    bulk_uploads[user_id] = {'message_id': bulk_message.id, 'data': bulk_data}
-    return bulk_message.id
-
 
 @TelegramBot.on(NewMessage(incoming=True, pattern='/bulk'))
 @verify_user(private=True)
 async def start_bulk_upload(event: NewMessage.Event | Message):
     """
-    Starts the bulk upload process for a user.
+    Starts the bulk upload process by parsing name and text.
     """
     user_id = event.sender_id
     
-    # Initialize the bulk_uploads dictionary for the user with empty values
-    bulk_data = {'name': '', 'text': '', 'files': []}
-    await save_bulk_data(user_id, bulk_data)
+    # Use a regex to extract name and text from the command
+    match = re.search(r'/bulk name:(.*?) text:(.*)', event.text, re.DOTALL)
+    
+    if not match:
+        await event.reply("Please use the format: /bulk name:[name] text:[text]")
+        return
+    
+    name = match.group(1).strip()
+    text = match.group(2).strip()
+
+    if not name or not text:
+        await event.reply("Both name and text fields must not be empty.")
+        return
+
+    # Initialize the bulk_uploads dictionary for the user
+    bulk_uploads[user_id] = {'name': name, 'text': text, 'files': []}
     
     await event.reply(
-        "Bulk upload started. Use /bulk_name and /bulk_text to set the details, then send me your files. When you're done, use the /bulk_end command."
+        f"Bulk upload started.\nName: **{name}**\nText: **{text}**\n\nNow, send me your files. When you're done, use the /bulk_end command."
     )
-
-@TelegramBot.on(NewMessage(incoming=True, pattern='/bulk_name'))
-@verify_user(private=True)
-async def set_bulk_name(event: NewMessage.Event | Message):
-    """
-    Sets the name for the bulk upload.
-    """
-    user_id = event.sender_id
-    parts = event.text.split(' ', 1)
-    
-    bulk_data = await get_bulk_data(user_id)
-    if not bulk_data:
-        await event.reply("Please start a bulk upload first with the /bulk command.")
-        return
-    
-    if len(parts) < 2:
-        await event.reply("Please provide a name. Example: /bulk_name My Awesome File Collection")
-        return
-        
-    name = parts[1]
-    bulk_data['name'] = name
-    await save_bulk_data(user_id, bulk_data)
-    
-    await event.reply(f"Name set to: **{name}**")
-
-@TelegramBot.on(NewMessage(incoming=True, pattern='/bulk_text'))
-@verify_user(private=True)
-async def set_bulk_text(event: NewMessage.Event | Message):
-    """
-    Sets the text for the bulk upload.
-    """
-    user_id = event.sender_id
-    parts = event.text.split(' ', 1)
-    
-    bulk_data = await get_bulk_data(user_id)
-    if not bulk_data:
-        await event.reply("Please start a bulk upload first with the /bulk command.")
-        return
-        
-    if len(parts) < 2:
-        await event.reply("Please provide text. Example: /bulk_text My File Text")
-        return
-        
-    text = parts[1]
-    bulk_data['text'] = text
-    await save_bulk_data(user_id, bulk_data)
-    
-    await event.reply(f"Text set to: **{text}**")
 
 @TelegramBot.on(NewMessage(incoming=True, func=filter_files))
 @verify_user(private=True)
@@ -131,10 +55,8 @@ async def user_file_handler(event: NewMessage.Event | Message):
     """
     user_id = event.sender_id
     
-    bulk_data = await get_bulk_data(user_id)
-    
     # Check if the user is in bulk upload mode
-    if bulk_data:
+    if user_id in bulk_uploads:
         file = event.message
         
         # Generate and save the secret code for each file
@@ -146,10 +68,9 @@ async def user_file_handler(event: NewMessage.Event | Message):
         file_name, file_size, mime_type = get_file_properties(message)
         
         file_info = {'id': message.id, 'size': file_size, 'secret_code': secret_code}
-        bulk_data['files'].append(file_info)
-        await save_bulk_data(user_id, bulk_data)
+        bulk_uploads[user_id]['files'].append(file_info)
         
-        file_count = len(bulk_data['files'])
+        file_count = len(bulk_uploads[user_id]['files'])
         await event.reply(f"File {file_count} added to bulk list.")
     else:
         # Your original single file handler logic
@@ -188,28 +109,17 @@ async def end_bulk_upload(event: NewMessage.Event | Message):
     """
     user_id = event.sender_id
     
-    bulk_data = await get_bulk_data(user_id)
-    
-    if not bulk_data or not bulk_data['files']:
+    if user_id not in bulk_uploads or not bulk_uploads[user_id]['files']:
         await event.reply("No files were uploaded. Please use /bulk to start.")
         return
         
-    # Check to ensure name and text are set
-    if not bulk_data.get('name') or not bulk_data.get('text'):
-        await event.reply("Please set both a name (/bulk_name) and text (/bulk_text) before ending the upload.")
-        return
-
+    bulk_data = bulk_uploads[user_id]
+    del bulk_uploads[user_id]
+    
     # Send the JSON data to the channel and get the message ID
     json_data = json.dumps(bulk_data)
-    
-    # Send the final, persistent message and get its ID
     bulk_message = await TelegramBot.send_message(entity=Telegram.CHANNEL_ID, message=f'#bulk_files_{json_data}')
     bulk_id = bulk_message.id
-    
-    # Delete the temporary message from the channel to clean up
-    temp_message_id = bulk_uploads[user_id]['message_id']
-    await TelegramBot.delete_messages(entity=Telegram.CHANNEL_ID, ids=temp_message_id)
-    del bulk_uploads[user_id]
     
     bulk_link = f"{Server.BASE_URL}/bulk/{bulk_id}"
     
