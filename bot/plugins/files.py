@@ -1,3 +1,5 @@
+# bot/plugins/files.py
+
 from telethon import Button
 from telethon.events import NewMessage
 from telethon.errors import MessageAuthorRequiredError, MessageNotModifiedError, MessageIdInvalidError
@@ -133,11 +135,11 @@ async def channel_file_handler(event: NewMessage.Event | Message):
     """
     Handles new files in the channel, adding download links.
     """
-    # Check if the message was sent by the bot itself to avoid duplicates
-    me = await TelegramBot.get_me()
-    if event.sender_id == me.id:
+    # Check if the message contains the secret code pattern to avoid double-sending.
+    # The message is only processed if it was not sent by the bot.
+    if event.message.text and re.search(r'`\S+`', event.message.text):
         return
-
+        
     secret_code = token_hex(Telegram.SECRET_CODE_LENGTH)
     event.message.text = f"`{secret_code}`"
     message = await send_message(event.message)
