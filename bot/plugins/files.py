@@ -14,7 +14,6 @@ from urllib.parse import quote
 import json
 
 # Temporary in-memory storage for bulk uploads.
-# Format: {user_id: {'name': '...','text': '...', 'files': [{'id': ..., 'size': ...}, ...]}}
 bulk_uploads = {}
 
 @TelegramBot.on(NewMessage(incoming=True, pattern='/bulk'))
@@ -51,10 +50,15 @@ async def user_file_handler(event: NewMessage.Event | Message):
     if user_id in bulk_uploads:
         file = event.message
         
-        # Get file properties from the message object
-        file_name, file_size, mime_type = get_file_properties(file)
+        # Generate and save the secret code for each file
+        secret_code = token_hex(Telegram.SECRET_CODE_LENGTH)
+        file.text = f'`{secret_code}`'
+        message = await send_message(file)
         
-        file_info = {'id': file.id, 'size': file_size}
+        # Get file properties from the new message object
+        file_name, file_size, mime_type = get_file_properties(message)
+        
+        file_info = {'id': message.id, 'size': file_size, 'secret_code': secret_code}
         bulk_uploads[user_id]['files'].append(file_info)
         
         file_count = len(bulk_uploads[user_id]['files'])
@@ -105,7 +109,6 @@ async def end_bulk_upload(event: NewMessage.Event | Message):
     
     # Send the JSON data to the channel and get the message ID
     json_data = json.dumps(bulk_data)
-    # The message sent to the channel is a special one, so we add a unique prefix to it
     bulk_message = await TelegramBot.send_message(entity=Telegram.CHANNEL_ID, message=f'#bulk_files_{json_data}')
     bulk_id = bulk_message.id
     
