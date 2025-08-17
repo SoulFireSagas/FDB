@@ -1,5 +1,3 @@
-# bot/plugins/files.py
-
 from telethon import Button
 from telethon.events import NewMessage
 from telethon.errors import MessageAuthorRequiredError, MessageNotModifiedError, MessageIdInvalidError
@@ -8,10 +6,9 @@ from secrets import token_hex
 from bot import TelegramBot
 from bot.config import Telegram, Server
 from bot.modules.decorators import verify_user
-from bot.modules.telegram import send_message, filter_files
+from bot.modules.telegram import send_message, filter_files, get_file_properties
 from bot.modules.static import *
 from urllib.parse import quote
-from bot.modules.telegram import get_file_properties
 
 # Temporary in-memory storage for bulk uploads.
 # Format: {user_id: {'name': '...','text': '...', 'files': [{'id': ..., 'size': ...}, ...]}}
@@ -67,15 +64,26 @@ async def user_file_handler(event: NewMessage.Event | Message):
         message_id = message.id
         
         dl_link = f'{Server.BASE_URL}/RD/{message_id}?code={secret_code}'
-            
-        await event.reply(
-            message=FileLinksText % {'dl_link': dl_link},
-            buttons=[
-                [
-                    Button.url('Download', dl_link)
+        tg_link = f'{Server.BASE_URL}/file/{message_id}?code={secret_code}'
+
+        if (event.document and 'video' in event.document.mime_type) or event.video:
+             await event.reply(
+                 message=MediaLinksText % {'dl_link': dl_link}, 
+                 buttons=[
+                     [
+                         Button.url('Download', dl_link)
+                     ]
+                 ]
+             )
+        else:
+            await event.reply(
+                message=FileLinksText % {'dl_link': dl_link, 'tg_link': tg_link},
+                buttons=[
+                    [
+                        Button.url('Download', dl_link)
+                    ]
                 ]
-            ]
-        )
+            )
 
 @TelegramBot.on(NewMessage(incoming=True, pattern='/bulk_end'))
 @verify_user(private=True)
@@ -103,7 +111,6 @@ async def end_bulk_upload(event: NewMessage.Event | Message):
         "This link will expire after a while."
     )
 
-# Your original channel file handler remains the same
 @TelegramBot.on(NewMessage(incoming=True, func=filter_files, forwards=False))
 @verify_user()
 async def channel_file_handler(event: NewMessage.Event | Message):
@@ -113,7 +120,6 @@ async def channel_file_handler(event: NewMessage.Event | Message):
     message_id = message.id
 
     dl_link = f'{Server.BASE_URL}/RD/{message_id}?code={secret_code}'
-        
     tg_link = f"{Server.BASE_URL}/file/{message_id}?code={secret_code}"
 
     if (event.document and "video" in event.document.mime_type) or event.video:
