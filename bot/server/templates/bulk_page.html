@@ -45,7 +45,8 @@
                 {% set serial_number = loop.index %}
                 {% set file_id = file_info.id %}
                 {% set file_size_mb = (file_info.size / 1024 / 1024) | round(2) %}
-                {% set dl_url = '/RD/' + file_id|string + '?code=' + 'your_secret_code_from_database' %}
+                {% set secret_code = file_info.secret_code %}
+                {% set dl_url = '/RD/' + file_id|string + '?code=' + secret_code %}
                 
                 <a href="{{ dl_url }}" class="file-button">
                     <div class="flex items-center space-x-3">
