@@ -120,3 +120,9 @@ async def file_deeplink(file_id):
     return redirect(f'https://t.me/{Telegram.BOT_USERNAME}?start=file_{file_id}_{code}')
 
 
+@bp.route('/bulk/<bulk_id>')
+async def bulk_page(bulk_id):
+    bulk_data = TelegramBot.bulk_cache.get(bulk_id) or abort(404)
+    return await render_template('bulk_page.html', bulk_data=bulk_data)
+
+
