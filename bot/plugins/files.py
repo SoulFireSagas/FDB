@@ -121,7 +121,7 @@ async def end_bulk_upload(event: NewMessage.Event | Message):
     bulk_message = await TelegramBot.send_message(entity=Telegram.CHANNEL_ID, message=f'#bulk_files_{json_data}')
     bulk_id = bulk_message.id
     
-    bulk_link = f"{Server.BASE_URL}/bulk/{bulk_id}"
+    bulk_link = f"{Server.BASE_URL}/Episodes/{bulk_id}"
     
     await event.reply(
         "Bulk upload complete! Here is your dedicated page:\n\n"
@@ -166,3 +166,4 @@ async def channel_file_handler(event: NewMessage.Event | Message):
             MessageNotModifiedError,
         ):
             pass
+
