@@ -1,5 +1,3 @@
-# bot/plugins/files.py
-
 from telethon import Button
 from telethon.events import NewMessage
 from telethon.errors import MessageAuthorRequiredError, MessageNotModifiedError, MessageIdInvalidError
@@ -121,7 +119,7 @@ async def end_bulk_upload(event: NewMessage.Event | Message):
     bulk_message = await TelegramBot.send_message(entity=Telegram.CHANNEL_ID, message=f'#bulk_files_{json_data}')
     bulk_id = bulk_message.id
     
-    bulk_link = f"{Server.BASE_URL}/Episodes/{bulk_id}"
+    bulk_link = f"{Server.BASE_URL}/bulk/{bulk_id}"
     
     await event.reply(
         "Bulk upload complete! Here is your dedicated page:\n\n"
@@ -132,6 +130,14 @@ async def end_bulk_upload(event: NewMessage.Event | Message):
 @TelegramBot.on(NewMessage(incoming=True, func=filter_files, forwards=False))
 @verify_user()
 async def channel_file_handler(event: NewMessage.Event | Message):
+    """
+    Handles new files in the channel, adding download links.
+    """
+    # Check if the message was sent by the bot itself to avoid duplicates
+    me = await TelegramBot.get_me()
+    if event.sender_id == me.id:
+        return
+
     secret_code = token_hex(Telegram.SECRET_CODE_LENGTH)
     event.message.text = f"`{secret_code}`"
     message = await send_message(event.message)
@@ -166,4 +172,3 @@ async def channel_file_handler(event: NewMessage.Event | Message):
             MessageNotModifiedError,
         ):
             pass
-
