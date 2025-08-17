@@ -21,14 +21,14 @@ class Server:
     BIND_ADDRESS = env.get("BIND_ADDRESS", "0.0.0.0")
     PORT = int(env.get("PORT", 8080))
 
-
-
     USE_BLOGGER_REDIRECT = True  # Set False to disable
-    # Corrected: This should be a list of the actual Blogger redirect URLs.
     BLOGGER_URLS = env.get("BLOGGER_URLS", "https://redirectarc.blogspot.com/2025/08/redirect.html").split(',')
-    # This is the final download link that the Blogger page will use
-    # It should be your server's /dl/ endpoint
     RD_URL = env.get("RD_URL", f"{BASE_URL}/RD")
+    
+
+class MongoDB:
+    URI = "your_mongodb_connection_uri" # Replace with your URI
+    DB_NAME = "your_database_name"
 
 
 
@@ -101,6 +101,7 @@ LOGGER_CONFIG_JSON = {
     }
 
 }
+
 
 
 
