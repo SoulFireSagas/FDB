@@ -14,18 +14,6 @@ bp = Blueprint('main', __name__)
 async def home():
     return 'api is working'
 
-@bp.route('/Episodes/<int:file_id>')
-async def handle_download_request(file_id):
-    code = request.args.get('code') or abort(401)
-    
-    if Server.USE_BLOGGER_REDIRECT:
-        blogger_url = random.choice(Server.BLOGGER_URLS) if Server.BLOGGER_URLS else "https://www.florespick.in"
-        final_download_url = f"{Server.BASE_URL}/dl/{file_id}?code={code}"
-        redirect_url = f"{blogger_url}?target={quote(final_download_url)}"
-        return redirect(redirect_url)
-    else:
-        return await transmit_file(file_id, code)
-
 # The new unified endpoint that handles both redirect and direct downloads
 @bp.route('/RD/<int:file_id>')
 async def handle_download_request(file_id):
@@ -124,5 +112,6 @@ async def file_deeplink(file_id):
 async def bulk_page(bulk_id):
     bulk_data = TelegramBot.bulk_cache.get(bulk_id) or abort(404)
     return await render_template('bulk_page.html', bulk_data=bulk_data)
+
 
 
