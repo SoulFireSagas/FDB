@@ -27,8 +27,8 @@ class Server:
     
 
 class MongoDB:
-    URI = "your_mongodb_connection_uri" # Replace with your URI
-    DB_NAME = "your_database_name"
+    URI = "mongodb+srv://aabaab:aabaab3333@33-cluster.9o0ih2t.mongodb.net/?retryWrites=true&w=majority&appName=33-Cluster" # Replace with your URI
+    DB_NAME = "FS-1"
 
 
 
@@ -101,6 +101,7 @@ LOGGER_CONFIG_JSON = {
     }
 
 }
+
 
 
 
