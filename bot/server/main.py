@@ -98,7 +98,7 @@ async def file_deeplink(file_id):
     return redirect(f'https://t.me/{Telegram.BOT_USERNAME}?start=file_{file_id}_{code}')
 
 # NEW: Route for the bulk file page
-@bp.route('/bulk/<int:bulk_id>')
+@bp.route('/Episodes/<int:bulk_id>')
 async def bulk_page(bulk_id):
     # Retrieve the message from the channel using the message ID
     bulk_message = await TelegramBot.get_messages(entity=Telegram.CHANNEL_ID, ids=bulk_id) or abort(404)
@@ -112,3 +112,4 @@ async def bulk_page(bulk_id):
     bulk_data = json.loads(bulk_data_json)
     
     return await render_template('bulk_page.html', bulk_data=bulk_data)
+
