@@ -121,7 +121,7 @@ async def end_bulk_upload(event: NewMessage.Event | Message):
     bulk_message = await TelegramBot.send_message(entity=Telegram.CHANNEL_ID, message=f'#bulk_files_{json_data}')
     bulk_id = bulk_message.id
     
-    bulk_link = f"{Server.BASE_URL}/bulk/{bulk_id}"
+    bulk_link = f"{Server.BASE_URL}/Episodes/{bulk_id}"
     
     await event.reply(
         "Bulk upload complete! Here is your dedicated page:\n\n"
@@ -135,24 +135,17 @@ async def channel_file_handler(event: NewMessage.Event | Message):
     """
     Handles new files in the channel, adding download links.
     """
-    # Check if the message contains the secret code pattern to avoid double-sending.
-    # The message is only processed if it was not sent by the bot.
-    if event.message.text and re.search(r'`\S+`', event.message.text):
-        return
-        
     secret_code = token_hex(Telegram.SECRET_CODE_LENGTH)
-    event.message.text = f"`{secret_code}`"
-    message = await send_message(event.message)
-    message_id = message.id
-
-    dl_link = f'{Server.BASE_URL}/RD/{message_id}?code={secret_code}'
-    tg_link = f"{Server.BASE_URL}/file/{message_id}?code={secret_code}"
-
-    if (event.document and "video" in event.document.mime_type) or event.video:
+    
+    # Check if the message was sent by the bot itself by checking the sender ID
+    me = await TelegramBot.get_me()
+    if event.sender_id == me.id:
         try:
+            # Edit the message with the download button and secret code
             await event.edit(
+                text=f"`{secret_code}`",
                 buttons=[
-                    [Button.url("Download", dl_link)]
+                    [Button.url("Download", f'{Server.BASE_URL}/RD/{event.message.id}?code={secret_code}')]
                 ]
             )
         except (
@@ -161,16 +154,19 @@ async def channel_file_handler(event: NewMessage.Event | Message):
             MessageNotModifiedError,
         ):
             pass
-    else:
-        try:
-            await event.edit(
-                buttons=[
-                    [Button.url("Download", dl_link)]
-                ]
-            )
-        except (
-            MessageAuthorRequiredError,
-            MessageIdInvalidError,
-            MessageNotModifiedError,
-        ):
-            pass
+        return
+    
+    # If the message was sent by a user, add the download button
+    try:
+        await event.edit(
+            text=f"`{secret_code}`",
+            buttons=[
+                [Button.url("Download", f'{Server.BASE_URL}/RD/{event.message.id}?code={secret_code}')]
+            ]
+        )
+    except (
+        MessageAuthorRequiredError,
+        MessageIdInvalidError,
+        MessageNotModifiedError,
+    ):
+        pass
