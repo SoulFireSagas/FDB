@@ -7,7 +7,7 @@ class Telegram:
     API_ID = int(env.get("TELEGRAM_API_ID", 22928570))
     API_HASH = env.get("TELEGRAM_API_HASH", "60bb37bddecb48c27c3e86906a077603")
     OWNER_ID = int(env.get("OWNER_ID", 2010016480))
-    ALLOWED_USER_IDS = env.get("ALLOWED_USER_IDS", "2010016480").split()
+    ALLOWED_USER_IDS = env.get("ALLOWED_USER_IDS", "2010016480 6146353175 1368169491 1927522692").split()
     BOT_USERNAME = env.get("TELEGRAM_BOT_USERNAME", "FPDL_1Robot")
     BOT_TOKEN = env.get("TELEGRAM_BOT_TOKEN", "8450788394:AAGPcBSKFLLBnD4ED_Lxk2piHcJ-6iF5dgg")
     CHANNEL_ID = int(env.get("TELEGRAM_CHANNEL_ID", -1002744991028))
@@ -17,7 +17,7 @@ class Telegram:
 
 class Server:
 
-    BASE_URL = env.get("BASE_URL", "https://fond-marnia-soulfiresagas-e0ac340f.koyeb.app")
+    BASE_URL = env.get("BASE_URL", "https://dl.florespick.in")
     BIND_ADDRESS = env.get("BIND_ADDRESS", "0.0.0.0")
     PORT = int(env.get("PORT", 8080))
 
@@ -101,6 +101,7 @@ LOGGER_CONFIG_JSON = {
     }
 
 }
+
 
 
 
