@@ -7,7 +7,7 @@ class Telegram:
     ALLOWED_USER_IDS = env.get("ALLOWED_USER_IDS", "").split()
     BOT_USERNAME = env.get("TELEGRAM_BOT_USERNAME", "BotFather")
     BOT_TOKEN = env.get("TELEGRAM_BOT_TOKEN", "1234:abcd")
-    CHANNEL_ID = int(env.get("TELEGRAM_CHANNEL_ID", -1001234567890))
+    CHANNEL_ID = int(env.get("TELEGRAM_CHANNEL_ID", ))
     SECRET_CODE_LENGTH = int(env.get("SECRET_CODE_LENGTH", 12))
 
 class Server:
@@ -17,8 +17,8 @@ class Server:
 
 
     USE_BLOGGER_REDIRECT = True  # Set False to disable
-    BLOGGER_URL = "https://redirectarc.blogspot.com/2025/08/redirecting-to-your-link-countdown-font.html"
-    DOWNLOAD_DELAY_SECONDS = 5  # Countdown duration
+    BLOGGER_URL = "https;//sample.com"
+    
     
 # LOGGING CONFIGURATION
 LOGGER_CONFIG_JSON = {
@@ -55,4 +55,5 @@ LOGGER_CONFIG_JSON = {
         }
     }
 }
+
 
